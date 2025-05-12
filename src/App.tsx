@@ -1,32 +1,48 @@
-import { useState } from 'react';
-import './App.css';
+import { useEffect, useState } from 'react';
+import ListComponent from './Components/ListComponent';
 
-function App() {
-  const [count, setCount] = useState(0);
+const App = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const increase = () => {
-    setCount(count + 1);
-  };
+  // Example API: JSONPlaceholder
+  const API_URL = 'https://jsonplaceholder.typicode.com/todos/';
 
-  const decrease = () => {
-    if (count > 0) {
-      setCount(count - 1);
-    }
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const result = await response.json();
+        setData(result.slice(0, 10)); // limit to 10 items
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="container">
-      <h1>Click Counter App</h1>
-      <h2>{count}</h2>
-
-      {count >= 10 && <p className="limit-message">You've reached the limit!</p>}
-
-      <div className="button-group">
-        <button className="btn increase" onClick={increase}>Increase</button>
-        <button className="btn decrease" onClick={decrease}>Decrease</button>
-      </div>
+    <div>
+      <h1>Post List</h1>
+      <ListComponent
+        items={data}
+        renderItem={(item) => (
+          <div>
+            <strong>{item.title}</strong>
+            <p>{item.body}</p>
+          </div>
+        )}
+      />
     </div>
   );
-}
+};
 
 export default App;
